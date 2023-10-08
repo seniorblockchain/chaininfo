@@ -2,40 +2,40 @@ version: "2.4"
 
 volumes:
   database:
-    name: market-db
+    name: hub-db
 
 services:
-  market:
-    container_name: blockcore-market
-    image: blockcore/market:0.0.16
+  hub:
+    container_name: blockcore-hub
+    image: blockcore/blockcore-hub:0.0.9
     mem_limit: 256m
     cpus: 0.500
     environment:
-      VIRTUAL_HOST: market.blockcore.net,market.city-chain.org
+      VIRTUAL_HOST: hub.freeplatform.city
       VIRTUAL_PORT: 5050
       VIRTUAL_PROTO: http
       VIRTUAL_NETWORK: proxy
-      LETSENCRYPT_HOST: market.blockcore.net,market.city-chain.org
+      LETSENCRYPT_HOST: hub.freeplatform.city
       LETSENCRYPT_EMAIL: admin@blockcore.net
-      MARKET_DATABASE: mongodb://market-db:27017
+      HUB_DATABASE: mongodb://hub-db:27017
       PORT: 5050
     restart: unless-stopped
     env_file:
       - .env
     depends_on:
-      market-db:
+      hub-db:
         condition: service_healthy
     networks:
-      - marketnetwork
+      - hubnetwork
       - proxy
 
-  market-db:
-    container_name: blockcore-market-db
+  hub-db:
+    container_name: blockcore-hub-db
     image: mongo:5.0.12
     mem_limit: 1024m
     cpus: 1.000
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongo market-db:27017/test --quiet
+      test: echo 'db.runCommand("ping").ok' | mongo hub-db:27017/test --quiet
       interval: 10s
       timeout: 10s
       retries: 5
@@ -46,12 +46,12 @@ services:
       - database:/data/db
       - database:/data/configdb
     networks:
-      - marketnetwork
+      - hubnetwork
 
 networks:
-  marketnetwork:
+  hubnetwork:
     external: false
-    name: marketnetwork
+    name: hubnetwork
   proxy:
     external: true
     name: proxy
